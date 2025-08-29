@@ -1,8 +1,4 @@
 import React, { useEffect, useState } from "react";
-
-// ============================
-// Task Form
-// ============================
 export function TaskForm({ onClose, onSave, initial = null }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -165,9 +161,7 @@ export function TaskForm({ onClose, onSave, initial = null }) {
   );
 }
 
-// ============================
-// Search Component
-// ============================
+
 export function Search({ tasks, onFilter }) {
   const [query, setQuery] = useState("");
 
@@ -190,7 +184,7 @@ export function Search({ tasks, onFilter }) {
   return (
     <div className="search-bar">
       <div className="search-icon">
-        {/* Magnifying glass SVG */}
+     
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="18"
