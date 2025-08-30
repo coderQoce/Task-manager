@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Header from "./components/Header";
-import TaskForm from "./components/TaskForm";
+import { TaskForm } from "./components/TaskForm.jsx";
 import TaskList from "./components/TaskList";
 import FilterBar from "./components/FilterBar";
 import "./styles/app.css";
@@ -12,8 +12,15 @@ const IconPlus = ({ size = 16 }) => (
   </svg>
 );
 
-const IconSearch = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+const IconSearch = ({ size = 16, className = "" }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    focusable="false"
+    className={className}
+  >
     <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" fill="none" />
     <path d="M20 20l-3.5-3.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
   </svg>
@@ -63,18 +70,16 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const [filter, setFilter] = useState("all"); // completed | pending | overdue
-  const [categoryFilter, setCategoryFilter] = useState("all"); // category filter
+  const [filter, setFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [darkMode, setDarkMode] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState(null);
 
-  // Search & sorting
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("datetime");
   const [sortDir, setSortDir] = useState("asc");
 
-  // XP
   const [xp, setXp] = useState(() => Number(localStorage.getItem("hn_xp_v2")) || 0);
   const [level, setLevel] = useState(() => Math.floor(xp / 100) + 1);
   const [streak, setStreak] = useState(() => Number(localStorage.getItem("hn_streak_v2")) || 0);
@@ -82,14 +87,12 @@ export default function App() {
     () => localStorage.getItem("hn_last_completed_v2") || null
   );
 
-  // Live date/time
   const [now, setNow] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Persist XP + tasks
   useEffect(() => {
     localStorage.setItem("hn_tasks_v2", JSON.stringify(tasks));
     localStorage.setItem("hn_xp_v2", xp);
@@ -97,17 +100,14 @@ export default function App() {
     localStorage.setItem("hn_last_completed_v2", lastCompletedDate);
   }, [tasks, xp, streak, lastCompletedDate]);
 
-  // DarkMode And WhiteMode
   useEffect(() => {
     document.body.classList.toggle("light", !darkMode);
     document.body.classList.toggle("dark", darkMode);
   }, [darkMode]);
 
-  // Htask overdue
   const isTaskOverdue = (task) =>
     task.datetime && !task.completed && new Date(task.datetime) < new Date();
 
-  // XP & Level handler
   const updateXp = (change) => {
     setXp((prevXp) => {
       const newXp = Math.max(prevXp + change, 0);
@@ -116,7 +116,6 @@ export default function App() {
     });
   };
 
-  // Task actions
   const openNewTask = () => {
     setTaskToEdit(null);
     setIsFormOpen(true);
@@ -283,7 +282,6 @@ export default function App() {
     return out;
   }, [tasks, filter, categoryFilter, searchQuery, sortBy, sortDir]);
 
-  // Stats
   const stats = useMemo(() => {
     const total = tasks.length;
     const completed = tasks.filter((t) => t.completed).length;
@@ -301,36 +299,16 @@ export default function App() {
         <div className="top-controls">
           <div className="left-controls">
             <button className="btn btn-primary" onClick={openNewTask} aria-label="Add task">
-              <span style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+              <span className="btn-content">
                 <IconPlus />
                 <span>Add Task</span>
               </span>
             </button>
 
-            {/* Quick Search + Sort */}
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                marginLeft: 12,
-                alignItems: "center",
-              }}
-            >
-              {/* Search input with leading icon */}
-              <div style={{ position: "relative" }}>
-                <IconSearch
-                  size={16}
-                  /* leading icon position */
-                  // @ts-ignore
-                  style={{
-                    position: "absolute",
-                    left: 10,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    pointerEvents: "none",
-                    opacity: 0.8,
-                  }}
-                />
+            <div className="controls-group">
+              {/* ✅ Search input fixed */}
+              <div className="search-wrapper">
+                <IconSearch size={16} className="search-icon" />
                 <input
                   className="quick-search"
                   type="search"
@@ -338,28 +316,14 @@ export default function App() {
                   placeholder="Search tasks..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    padding: "8px 12px 8px 32px",
-                    borderRadius: 10,
-                    border: "1px solid rgba(255,255,255,0.04)",
-                    background: "transparent",
-                    color: "inherit",
-                    minWidth: 220,
-                  }}
                 />
               </div>
 
               <select
+                className="select-control"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 aria-label="Sort by"
-                style={{
-                  padding: "8px 10px",
-                  borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.04)",
-                  background: "transparent",
-                  color: "inherit",
-                }}
               >
                 <option value="datetime">Sort: Date / Due</option>
                 <option value="priority">Sort: Priority</option>
@@ -373,7 +337,6 @@ export default function App() {
                 aria-label={`Sort direction ${sortDir === "asc" ? "ascending" : "descending"}`}
                 onClick={() => setSortDir((s) => (s === "asc" ? "desc" : "asc"))}
                 title={sortDir === "asc" ? "Ascending" : "Descending"}
-                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center" }}
               >
                 {sortDir === "asc" ? <IconChevronUp /> : <IconChevronDown />}
               </button>
@@ -382,18 +345,11 @@ export default function App() {
 
           <div className="right-controls">
             <FilterBar filter={filter} setFilter={setFilter} />
-
             <select
+              className="select-control"
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               aria-label="Filter by category"
-              style={{
-                padding: "6px 10px",
-                borderRadius: 8,
-                marginLeft: 8,
-                background: "transparent",
-                color: "inherit",
-              }}
             >
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
@@ -404,67 +360,25 @@ export default function App() {
           </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            marginBottom: 12,
-            flexWrap: "wrap",
-            alignItems: "center",
-          }}
-        >
+        <div className="stats-inline">
+          <div className="stat">Total: <strong>{stats.total}</strong></div>
+          <div className="stat">Completed: <strong>{stats.completed}</strong></div>
+          <div className="stat">Pending: <strong>{stats.pending}</strong></div>
           <div className="stat">
-            Total: <strong>{stats.total}</strong>
+            Overdue: <strong className={stats.overdue > 0 ? "danger" : ""}>{stats.overdue}</strong>
           </div>
-          <div className="stat">
-            Completed: <strong>{stats.completed}</strong>
-          </div>
-          <div className="stat">
-            Pending: <strong>{stats.pending}</strong>
-          </div>
-          <div className="stat">
-            Overdue:{" "}
-            <strong style={{ color: stats.overdue > 0 ? "var(--danger)" : "inherit" }}>
-              {stats.overdue}
-            </strong>
-          </div>
-          <div className="stat" style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <div className="stat time">
             <IconClock /> {now.toLocaleString()}
           </div>
         </div>
 
-        <div className="stats-bar" style={{ marginBottom: 12 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: 4,
-              alignItems: "center",
-            }}
-          >
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <IconStar /> Level {level}
-            </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <IconFlame /> Streak: {streak} days
-            </span>
+        <div className="stats-bar">
+          <div className="stats-top">
+            <span><IconStar /> Level {level}</span>
+            <span><IconFlame /> Streak: {streak} days</span>
           </div>
-          <div
-            style={{
-              background: "rgba(255,255,255,0.1)",
-              borderRadius: 6,
-              height: 10,
-              overflow: "hidden",
-            }}
-            aria-label="XP progress"
-          >
-            <div
-              style={{
-                width: `${xp % 100}%`,
-                background: "linear-gradient(90deg, #4cafef, #00ffcc)",
-                height: "100%",
-              }}
-            />
+          <div className="xp-progress" aria-label="XP progress">
+            <div style={{ width: `${xp % 100}%` }} />
           </div>
           <small>{xp % 100} / 100 XP</small>
         </div>
